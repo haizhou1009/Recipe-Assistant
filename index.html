@@ -65,10 +65,11 @@
         .btn-outline:hover { background: #fff5ee; }
         .btn-small { padding: 6px 16px; font-size: 0.85rem; }
 
-        /* 瀑布流 */
+        /* 改为 Grid 双列布局，确保顺序严格 */
         .recipe-grid {
-            column-count: 2;
-            column-gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 20px;
         }
         .recipe-card {
@@ -78,12 +79,9 @@
             border: 1px solid var(--border);
             transition: 0.2s;
             cursor: pointer;
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 12px;
-            break-inside: avoid;
             padding: 12px;
-            vertical-align: top;        /* 确保卡片顶部对齐 */
+            display: flex;
+            flex-direction: column;
         }
         .recipe-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.07); }
         .card-img {
@@ -92,7 +90,6 @@
             object-fit: cover;
             border-radius: 12px;
             background: #f3efe9;
-            display: block;
             margin-bottom: 10px;
         }
         .card-placeholder {
@@ -107,9 +104,7 @@
             color: #c0b0a0;
             margin-bottom: 10px;
         }
-        .card-content {
-            padding: 0 2px;
-        }
+        .card-content { flex: 1; display: flex; flex-direction: column; }
         .recipe-name {
             font-size: 1rem;
             font-weight: 600;
@@ -118,7 +113,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+        .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
         .tag {
             padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500;
             white-space: nowrap;
@@ -127,12 +122,12 @@
         .tag-seasoning { background: var(--tag-seasoning-bg); color: var(--tag-seasoning-text); }
 
         .empty-state {
-            column-span: all;
+            grid-column: span 2;
             text-align: center; padding: 40px 20px; color: #b8aa9a;
         }
         .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 
-        /* 底部浮层（详情 & 添加） */
+        /* 底部半屏浮层（详情 & 添加） */
         .bottom-sheet-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -152,7 +147,7 @@
         .bottom-sheet {
             background: white;
             width: 100%;
-            max-height: 90vh;            /* 增加到 90vh */
+            max-height: 90vh;
             border-radius: 24px 24px 0 0;
             padding: 28px 24px 36px;
             box-shadow: 0 -8px 30px rgba(0,0,0,0.1);
@@ -200,11 +195,15 @@
             white-space: pre-wrap; line-height: 1.7; color: #5e4e3c;
             font-size: 0.95rem;
         }
+        .detail-delete-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
         .detail-delete-btn {
             background: none; border: 1px solid #d44; color: #d44;
             padding: 10px 20px; border-radius: 24px; font-size: 0.9rem;
-            margin-top: 24px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-            align-self: flex-start;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
         }
 
         /* 添加菜谱浮层样式 */
@@ -221,10 +220,10 @@
         }
         .form-group textarea { resize: vertical; min-height: 70px; }
 
-        /* 图片上传方块缩小一半，居中 */
+        /* 图片上传区块缩小并左对齐 */
         .image-upload-container {
-            width: 50%;
-            margin: 0 auto;
+            width: 40%;
+            margin-right: auto; /* 左对齐 */
             aspect-ratio: 1 / 1;
             border: 1px dashed #ccc;
             border-radius: 16px;
@@ -244,9 +243,9 @@
             align-items: center;
             justify-content: center;
             color: #b8aa9a;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
-        .placeholder-content .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .placeholder-content .icon { font-size: 2rem; margin-bottom: 6px; }
         .remove-image-btn {
             position: absolute;
             top: 8px; right: 8px;
@@ -258,11 +257,47 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; cursor: pointer;
         }
-        .hidden { display: none !important; }
 
-        @media (max-width: 480px) {
-            .recipe-grid { column-count: 2; }
+        /* 自定义确认弹窗 */
+        .confirm-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
         }
+        .confirm-overlay.open {
+            visibility: visible;
+            opacity: 1;
+        }
+        .confirm-dialog {
+            background: white;
+            border-radius: 24px;
+            padding: 28px 24px 20px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .confirm-dialog p {
+            font-size: 1.05rem;
+            margin-bottom: 24px;
+            color: #4b3a2b;
+        }
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .confirm-actions .btn {
+            min-width: 80px;
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -286,7 +321,7 @@
 
     <!-- 添加菜谱浮层 -->
     <div class="bottom-sheet-overlay" id="formOverlay">
-        <div class="bottom-sheet">
+        <div class="bottom-sheet" id="formSheet">
             <h3 class="form-title" id="formTitle">添加新菜谱</h3>
             <div class="form-group">
                 <label>菜名</label>
@@ -322,7 +357,7 @@
 
     <!-- 详情浮层 -->
     <div class="bottom-sheet-overlay" id="detailOverlay">
-        <div class="bottom-sheet">
+        <div class="bottom-sheet" id="detailSheet">
             <img id="detailImg" class="detail-img hidden" src="" alt="菜品图片">
             <div id="detailImgPlaceholder" class="detail-placeholder">🍽️</div>
             <div class="detail-name" id="detailName"></div>
@@ -338,12 +373,26 @@
                 <div class="label">📝 做法</div>
                 <div class="detail-steps" id="detailSteps"></div>
             </div>
-            <button class="detail-delete-btn" id="deleteFromDetailBtn">🗑️ 删除这道菜</button>
+            <div class="detail-delete-wrapper">
+                <button class="detail-delete-btn" id="deleteFromDetailBtn">🗑️ 删除这道菜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义删除确认弹窗 -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-dialog">
+            <p>确定要删除这道菜吗？</p>
+            <div class="confirm-actions">
+                <button class="btn btn-outline" id="confirmCancelBtn">取消</button>
+                <button class="btn" id="confirmOkBtn">删除</button>
+            </div>
         </div>
     </div>
 
     <script>
         (function() {
+            // 默认数据
             const DEFAULT_RECIPES = [
                 { id:'1', name:'西红柿炒鸡蛋', ingredients:['西红柿','鸡蛋','葱'], seasonings:['盐','糖','食用油'], steps:'鸡蛋打散炒熟盛出；西红柿切块炒出汁，倒入鸡蛋，加盐糖调味。', image:'' },
                 { id:'2', name:'酸辣土豆丝', ingredients:['土豆','干辣椒'], seasonings:['花椒','蒜','醋','生抽','盐','食用油'], steps:'土豆切细丝泡水去淀粉；爆香干辣椒、花椒、蒜，下土豆丝大火快炒，烹醋和生抽。', image:'' },
@@ -363,12 +412,15 @@
             let recipes = loadRecipes();
             let currentKeywords = [];
 
+            // DOM 元素
             const searchInput = document.getElementById('searchInput');
             const resultCount = document.getElementById('resultCount');
             const recipeGrid = document.getElementById('recipeGrid');
             const addRecipeBtn = document.getElementById('addRecipeBtn');
 
+            // 表单浮层
             const formOverlay = document.getElementById('formOverlay');
+            const formSheet = document.getElementById('formSheet');
             const formTitle = document.getElementById('formTitle');
             const recipeNameInput = document.getElementById('recipeNameInput');
             const ingredientsInput = document.getElementById('ingredientsInput');
@@ -381,7 +433,9 @@
             const removeImgBtn = document.getElementById('removeImgBtn');
             const imageFileInput = document.getElementById('imageFileInput');
 
+            // 详情浮层
             const detailOverlay = document.getElementById('detailOverlay');
+            const detailSheet = document.getElementById('detailSheet');
             const detailImg = document.getElementById('detailImg');
             const detailImgPlaceholder = document.getElementById('detailImgPlaceholder');
             const detailName = document.getElementById('detailName');
@@ -390,10 +444,17 @@
             const detailSteps = document.getElementById('detailSteps');
             const deleteFromDetailBtn = document.getElementById('deleteFromDetailBtn');
 
+            // 自定义确认弹窗
+            const confirmOverlay = document.getElementById('confirmOverlay');
+            const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+            const confirmOkBtn = document.getElementById('confirmOkBtn');
+
             let editingId = null;
             let currentImageData = '';
             let currentDetailId = null;
+            let pendingDeleteId = null; // 待删除的菜谱ID
 
+            // 工具函数
             const parseItems = str => str.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
             const normalize = s => s.trim().toLowerCase();
 
@@ -403,6 +464,7 @@
                 return keywords.every(kw => pool.some(item => item.includes(normalize(kw))));
             };
 
+            // 图片裁剪
             const cropSquare = file => new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = e => {
@@ -422,6 +484,7 @@
                 reader.readAsDataURL(file);
             });
 
+            // 图片上传交互
             imageUploadContainer.addEventListener('click', (e) => {
                 if (e.target === removeImgBtn) return;
                 imageFileInput.click();
@@ -449,6 +512,19 @@
                 removeImgBtn.classList.add('hidden');
             });
 
+            // 输入框 placeholder 控制
+            const setupPlaceholderToggle = (input) => {
+                const originalPlaceholder = input.placeholder;
+                input.addEventListener('focus', () => {
+                    input.placeholder = '';
+                });
+                input.addEventListener('blur', () => {
+                    input.placeholder = originalPlaceholder;
+                });
+            };
+            [recipeNameInput, ingredientsInput, seasoningsInput, stepsInput, searchInput].forEach(setupPlaceholderToggle);
+
+            // 打开添加/编辑浮层
             const openFormSheet = (recipe = null) => {
                 if (recipe) {
                     formTitle.textContent = '编辑菜谱';
@@ -480,6 +556,7 @@
                 }
                 formOverlay.classList.remove('hidden');
                 formOverlay.classList.add('open');
+                formSheet.scrollTop = 0; // 重置滚动
                 recipeNameInput.focus();
             };
 
@@ -491,6 +568,7 @@
             formOverlay.addEventListener('click', e => { if (e.target === formOverlay) closeFormSheet(); });
             addRecipeBtn.addEventListener('click', () => openFormSheet());
 
+            // 保存菜谱
             saveRecipeBtn.addEventListener('click', () => {
                 const name = recipeNameInput.value.trim();
                 const ingredients = parseItems(ingredientsInput.value);
@@ -511,6 +589,7 @@
                 renderRecipes();
             });
 
+            // 详情浮层
             const openDetailSheet = (id) => {
                 const recipe = recipes.find(r => r.id === id);
                 if (!recipe) return;
@@ -529,6 +608,7 @@
                 detailSteps.textContent = recipe.steps || '暂无做法';
                 detailOverlay.classList.remove('hidden');
                 detailOverlay.classList.add('open');
+                detailSheet.scrollTop = 0; // 重置滚动
             };
 
             const closeDetailSheet = () => {
@@ -537,15 +617,40 @@
                 currentDetailId = null;
             };
             detailOverlay.addEventListener('click', e => { if (e.target === detailOverlay) closeDetailSheet(); });
+
+            // 自定义确认弹窗逻辑
+            const showConfirm = (onConfirm) => {
+                confirmOverlay.classList.remove('hidden');
+                confirmOverlay.classList.add('open');
+                const cleanup = () => {
+                    confirmOverlay.classList.remove('open');
+                    confirmOverlay.classList.add('hidden');
+                    confirmCancelBtn.removeEventListener('click', onCancel);
+                    confirmOkBtn.removeEventListener('click', onOk);
+                };
+                const onCancel = () => cleanup();
+                const onOk = () => {
+                    cleanup();
+                    onConfirm();
+                };
+                confirmCancelBtn.addEventListener('click', onCancel);
+                confirmOkBtn.addEventListener('click', onOk);
+                confirmOverlay.addEventListener('click', (e) => {
+                    if (e.target === confirmOverlay) onCancel();
+                });
+            };
+
             deleteFromDetailBtn.addEventListener('click', () => {
-                if (currentDetailId && confirm('确定要删除这道菜吗？')) {
+                if (!currentDetailId) return;
+                showConfirm(() => {
                     recipes = recipes.filter(r => r.id !== currentDetailId);
                     saveRecipes(recipes);
                     closeDetailSheet();
                     renderRecipes();
-                }
+                });
             });
 
+            // 渲染网格
             const renderRecipes = () => {
                 const filtered = recipes.filter(r => recipeMatches(r, currentKeywords));
                 resultCount.textContent = `共 ${filtered.length} 道菜`;
