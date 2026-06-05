@@ -489,11 +489,13 @@
                     placeholderContent.classList.remove('hidden');
                     removeImgBtn.classList.add('hidden');
                 }
+                formOverlay.classList.remove('hidden');
                 formOverlay.classList.add('open');
                 recipeNameInput.focus();
             };
             const closeFormSheet = () => {
                 formOverlay.classList.remove('open');
+                formOverlay.classList.add('hidden'); 
                 editingId = null;
             };
             formOverlay.addEventListener('click', e => { if (e.target === formOverlay) closeFormSheet(); });
@@ -538,10 +540,12 @@
                 detailFoodTags.innerHTML = recipe.ingredients.map(i => `<span class="tag tag-food">${i}</span>`).join('');
                 detailSeasoningTags.innerHTML = recipe.seasonings.map(s => `<span class="tag tag-seasoning">${s}</span>`).join('');
                 detailSteps.textContent = recipe.steps || '暂无做法';
+                detailOverlay.classList.remove('hidden');
                 detailOverlay.classList.add('open');
             };
             const closeDetailSheet = () => {
                 detailOverlay.classList.remove('open');
+                detailOverlay.classList.add('hidden');
                 currentDetailId = null;
             };
             detailOverlay.addEventListener('click', e => { if (e.target === detailOverlay) closeDetailSheet(); });
