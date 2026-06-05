@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=2.0">
     <title>菜谱</title>
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥘</text></svg>">
     <style>
         :root {
@@ -53,20 +52,21 @@
             margin-bottom: 16px; font-size: 0.9rem; color: #7a6b5d;
         }
         .btn {
-            background: var(--accent); color: white; border: none; padding: 8px 18px;
-            border-radius: 20px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            background: var(--accent); color: white; border: none; padding: 10px 20px;
+            border-radius: 24px; font-size: 0.95rem; font-weight: 500; cursor: pointer;
             transition: 0.2s; box-shadow: 0 2px 6px rgba(224,123,57,0.3);
-            display: inline-flex; align-items: center; gap: 4px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
         }
         .btn:hover { background: #c96a30; }
+        .btn-block { width: 100%; padding: 14px; font-size: 1rem; border-radius: 30px; }
         .btn-outline {
             background: transparent; color: var(--accent); box-shadow: none;
             border: 1px solid var(--accent);
         }
         .btn-outline:hover { background: #fff5ee; }
-        .btn-small { padding: 4px 12px; font-size: 0.8rem; }
+        .btn-small { padding: 6px 16px; font-size: 0.85rem; }
 
-        /* 瀑布流布局 */
+        /* 瀑布流 */
         .recipe-grid {
             column-count: 2;
             column-gap: 12px;
@@ -83,7 +83,8 @@
             width: 100%;
             margin-bottom: 12px;
             break-inside: avoid;
-            padding: 8px;
+            padding: 12px;
+            vertical-align: top;
         }
         .recipe-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.07); }
         .card-img {
@@ -93,7 +94,7 @@
             border-radius: 12px;
             background: #f3efe9;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .card-placeholder {
             width: 100%;
@@ -105,10 +106,10 @@
             justify-content: center;
             font-size: 2.5rem;
             color: #c0b0a0;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .card-content {
-            padding: 0 4px;
+            padding: 0 2px;
         }
         .recipe-name {
             font-size: 1rem;
@@ -132,7 +133,7 @@
         }
         .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 
-        /* 半屏浮层——占满屏幕宽度，无左右空隙 */
+        /* 底部半屏浮层（详情/添加菜谱共用） */
         .bottom-sheet-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -152,17 +153,21 @@
         .bottom-sheet {
             background: white;
             width: 100%;
-            max-height: 80vh;
+            max-height: 85vh;
             border-radius: 24px 24px 0 0;
-            padding: 20px 16px 30px;
+            padding: 28px 24px 36px;
             box-shadow: 0 -8px 30px rgba(0,0,0,0.1);
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .bottom-sheet-overlay.open .bottom-sheet {
             transform: translateY(0);
         }
+
+        /* 详情专用样式 */
         .detail-img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -185,12 +190,11 @@
             margin-bottom: 20px;
         }
         .detail-name {
-            font-size: 1.5rem; font-weight: 600; margin-bottom: 24px; color: #4b3a2b;
+            font-size: 1.5rem; font-weight: 600; margin-bottom: 28px; color: #4b3a2b;
         }
         .detail-section {
             margin-bottom: 28px;
         }
-        .detail-section:last-child { margin-bottom: 0; }
         .detail-section .label {
             font-weight: 600; font-size: 1rem; margin-bottom: 12px; color: #4b3a2b;
         }
@@ -203,34 +207,59 @@
             background: none; border: 1px solid #d44; color: #d44;
             padding: 10px 20px; border-radius: 24px; font-size: 0.9rem;
             margin-top: 24px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            align-self: flex-start;
         }
 
-        /* 添加菜谱的模态框保持居中 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.35); backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 10; padding: 20px;
+        /* 添加菜谱浮层内部样式 */
+        .form-title {
+            font-size: 1.3rem; font-weight: 600; color: #4b3a2b; text-align: center; margin-bottom: 20px;
         }
-        .modal {
-            background: white; border-radius: 24px; padding: 24px 20px;
-            width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block; font-size: 0.95rem; font-weight: 500; margin-bottom: 6px; color: #5e4e3c;
         }
-        .modal h3 { margin-bottom: 16px; font-size: 1.3rem; color: #4b3a2b; text-align: center; }
-        .form-group { margin-bottom: 14px; }
-        .form-group label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; color: #5e4e3c; }
         .form-group input, .form-group textarea {
-            width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border);
             border-radius: 12px; font-size: 1rem; background: #fdfaf7;
         }
-        .form-group textarea { resize: vertical; min-height: 60px; }
-        .image-upload-area { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .preview-img {
-            width: 120px; height: 120px; border-radius: 12px; object-fit: cover;
-            background: #f3efe9; border: 1px solid var(--border);
+        .form-group textarea { resize: vertical; min-height: 70px; }
+
+        /* 图片上传区域 */
+        .image-upload-container {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border: 1px dashed #ccc;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            background: #fdfaf7;
+            cursor: pointer;
         }
-        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .image-upload-container .preview-img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .image-upload-container .placeholder-content {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #b8aa9a;
+            font-size: 1rem;
+        }
+        .placeholder-content .icon { font-size: 2.5rem; margin-bottom: 8px; }
+        .remove-image-btn {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; cursor: pointer;
+        }
         .hidden { display: none !important; }
 
         @media (max-width: 480px) {
@@ -247,7 +276,7 @@
 
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="例如：土豆 青椒 生抽" autocomplete="off" autofocus>
+            <input type="text" id="searchInput" placeholder="菜名、食材或调料，空格分隔" autocomplete="off" autofocus>
         </div>
 
         <div class="result-info">
@@ -258,10 +287,10 @@
         <div id="recipeGrid" class="recipe-grid"></div>
     </div>
 
-    <!-- 添加/编辑菜谱模态框（居中） -->
-    <div class="modal-overlay hidden" id="formModalOverlay">
-        <div class="modal">
-            <h3 id="modalTitle">添加新菜谱</h3>
+    <!-- 添加菜谱浮层（底部弹出） -->
+    <div class="bottom-sheet-overlay hidden" id="formOverlay">
+        <div class="bottom-sheet">
+            <h3 class="form-title" id="formTitle">添加新菜谱</h3>
             <div class="form-group">
                 <label>菜名</label>
                 <input type="text" id="recipeNameInput" placeholder="比如：酸辣土豆丝">
@@ -275,30 +304,29 @@
                 <input type="text" id="seasoningsInput" placeholder="生抽 醋 盐 蒜">
             </div>
             <div class="form-group">
-                <label>图片（自动裁剪为1:1）</label>
-                <div class="image-upload-area">
-                    <img id="previewImg" class="preview-img" src="" alt="预览图" style="display: none;">
-                    <div id="placeholderImg" class="preview-img" style="display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #c0b0a0;">📷</div>
-                    <input type="file" id="imageFileInput" accept="image/*" capture="environment" style="display: none;">
-                    <button type="button" class="btn btn-outline btn-small" id="uploadBtn">选择图片或拍照</button>
-                    <button type="button" class="btn btn-outline btn-small hidden" id="removeImgBtn">移除图片</button>
+                <label>图片（自动裁剪1:1）</label>
+                <div class="image-upload-container" id="imageUploadContainer">
+                    <img id="previewImg" class="preview-img hidden" src="" alt="预览图">
+                    <div class="placeholder-content" id="placeholderContent">
+                        <span class="icon">📷</span>
+                        <span>点击拍照或选图</span>
+                    </div>
+                    <button class="remove-image-btn hidden" id="removeImgBtn">✕</button>
+                    <input type="file" id="imageFileInput" accept="image/*" capture="environment" hidden>
                 </div>
             </div>
             <div class="form-group">
                 <label>做法（可选）</label>
                 <textarea id="stepsInput" rows="3" placeholder="切丝、爆香、翻炒……"></textarea>
             </div>
-            <div class="form-actions">
-                <button class="btn btn-outline" id="cancelFormBtn">取消</button>
-                <button class="btn" id="saveRecipeBtn">保存</button>
-            </div>
+            <button class="btn btn-block" id="saveRecipeBtn">保存菜谱</button>
         </div>
     </div>
 
-    <!-- 底部浮层详情（半屏，完全占满宽度） -->
-    <div class="bottom-sheet-overlay" id="bottomSheetOverlay">
-        <div class="bottom-sheet" id="bottomSheet">
-            <img id="detailImg" class="detail-img" src="" alt="菜品图片" style="display: none;">
+    <!-- 详情浮层（底部弹出） -->
+    <div class="bottom-sheet-overlay hidden" id="detailOverlay">
+        <div class="bottom-sheet">
+            <img id="detailImg" class="detail-img hidden" src="" alt="菜品图片">
             <div id="detailImgPlaceholder" class="detail-placeholder">🍽️</div>
             <div class="detail-name" id="detailName"></div>
             <div class="detail-section">
@@ -329,41 +357,37 @@
             ];
 
             const STORAGE_KEY = 'my_recipes_v2';
-            function loadRecipes() {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    try { return JSON.parse(stored); } catch (e) {}
-                }
-                saveRecipes(DEFAULT_RECIPES);
-                return JSON.parse(JSON.stringify(DEFAULT_RECIPES));
-            }
-            function saveRecipes(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+            const loadRecipes = () => {
+                try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || (() => { saveRecipes(DEFAULT_RECIPES); return JSON.parse(JSON.stringify(DEFAULT_RECIPES)); })(); }
+                catch { saveRecipes(DEFAULT_RECIPES); return JSON.parse(JSON.stringify(DEFAULT_RECIPES)); }
+            };
+            const saveRecipes = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
             let recipes = loadRecipes();
             let currentKeywords = [];
 
             // DOM 元素
             const searchInput = document.getElementById('searchInput');
-            const resultCountSpan = document.getElementById('resultCount');
+            const resultCount = document.getElementById('resultCount');
             const recipeGrid = document.getElementById('recipeGrid');
             const addRecipeBtn = document.getElementById('addRecipeBtn');
 
-            // 表单模态框
-            const formModalOverlay = document.getElementById('formModalOverlay');
+            // 表单浮层
+            const formOverlay = document.getElementById('formOverlay');
+            const formTitle = document.getElementById('formTitle');
             const recipeNameInput = document.getElementById('recipeNameInput');
             const ingredientsInput = document.getElementById('ingredientsInput');
             const seasoningsInput = document.getElementById('seasoningsInput');
             const stepsInput = document.getElementById('stepsInput');
             const saveRecipeBtn = document.getElementById('saveRecipeBtn');
-            const cancelFormBtn = document.getElementById('cancelFormBtn');
+            const imageUploadContainer = document.getElementById('imageUploadContainer');
             const previewImg = document.getElementById('previewImg');
-            const placeholderImg = document.getElementById('placeholderImg');
-            const imageFileInput = document.getElementById('imageFileInput');
-            const uploadBtn = document.getElementById('uploadBtn');
+            const placeholderContent = document.getElementById('placeholderContent');
             const removeImgBtn = document.getElementById('removeImgBtn');
+            const imageFileInput = document.getElementById('imageFileInput');
 
-            // 底部浮层
-            const bottomSheetOverlay = document.getElementById('bottomSheetOverlay');
+            // 详情浮层
+            const detailOverlay = document.getElementById('detailOverlay');
             const detailImg = document.getElementById('detailImg');
             const detailImgPlaceholder = document.getElementById('detailImgPlaceholder');
             const detailName = document.getElementById('detailName');
@@ -377,204 +401,187 @@
             let currentDetailId = null;
 
             // 工具函数
-            function parseItems(str) { return str.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean); }
-            function normalize(s) { return s.trim().toLowerCase(); }
-            function recipeMatchesAllKeywords(recipe, keywords) {
-                if (keywords.length === 0) return true;
-                const allItems = [...recipe.ingredients, ...recipe.seasonings].map(normalize);
-                return keywords.every(kw => {
-                    const kwLower = normalize(kw);
-                    return allItems.some(item => item.includes(kwLower));
-                });
-            }
+            const parseItems = str => str.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
+            const normalize = s => s.trim().toLowerCase();
 
-            // 图片裁剪
-            function cropImageToSquare(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const size = Math.min(img.width, img.height);
-                            const sx = (img.width - size) / 2;
-                            const sy = (img.height - size) / 2;
-                            const canvas = document.createElement('canvas');
-                            canvas.width = 400;
-                            canvas.height = 400;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, sx, sy, size, size, 0, 0, 400, 400);
-                            resolve(canvas.toDataURL('image/jpeg', 0.85));
-                        };
-                        img.onerror = reject;
-                        img.src = e.target.result;
+            // 搜索匹配：菜名、食材、调料
+            const recipeMatches = (recipe, keywords) => {
+                if (!keywords.length) return true;
+                const searchPool = [recipe.name, ...recipe.ingredients, ...recipe.seasonings].map(normalize);
+                return keywords.every(kw => searchPool.some(item => item.includes(normalize(kw))));
+            };
+
+            // 图片裁剪为正方形
+            const cropSquare = file => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const size = Math.min(img.width, img.height);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = canvas.height = 400;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 400, 400);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
                     };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            }
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
 
-            function updateImagePreview(dataUrl) {
-                if (dataUrl) {
-                    previewImg.src = dataUrl;
-                    previewImg.style.display = 'block';
-                    placeholderImg.style.display = 'none';
-                    removeImgBtn.classList.remove('hidden');
-                } else {
-                    previewImg.src = '';
-                    previewImg.style.display = 'none';
-                    placeholderImg.style.display = 'flex';
-                    removeImgBtn.classList.add('hidden');
-                }
-            }
-
-            uploadBtn.addEventListener('click', () => imageFileInput.click());
+            // 图片上传交互
+            imageUploadContainer.addEventListener('click', (e) => {
+                if (e.target === removeImgBtn) return;
+                imageFileInput.click();
+            });
             imageFileInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 try {
-                    const dataUrl = await cropImageToSquare(file);
-                    currentImageData = dataUrl;
-                    updateImagePreview(dataUrl);
-                } catch (err) {
-                    alert('图片处理失败，请重试');
-                    imageFileInput.value = '';
+                    currentImageData = await cropSquare(file);
+                    previewImg.src = currentImageData;
+                    previewImg.classList.remove('hidden');
+                    placeholderContent.classList.add('hidden');
+                    removeImgBtn.classList.remove('hidden');
+                } catch {
+                    alert('图片处理失败');
                 }
-            });
-            removeImgBtn.addEventListener('click', () => {
-                currentImageData = '';
                 imageFileInput.value = '';
-                updateImagePreview('');
+            });
+            removeImgBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentImageData = '';
+                previewImg.src = '';
+                previewImg.classList.add('hidden');
+                placeholderContent.classList.remove('hidden');
+                removeImgBtn.classList.add('hidden');
             });
 
-            // 表单模态框控制
-            function openFormModal(editRecipe = null) {
-                if (editRecipe) {
-                    document.getElementById('modalTitle').textContent = '编辑菜谱';
-                    recipeNameInput.value = editRecipe.name;
-                    ingredientsInput.value = editRecipe.ingredients.join('，');
-                    seasoningsInput.value = editRecipe.seasonings.join('，');
-                    stepsInput.value = editRecipe.steps || '';
-                    currentImageData = editRecipe.image || '';
-                    updateImagePreview(currentImageData);
-                    editingId = editRecipe.id;
+            // 打开添加/编辑浮层
+            const openFormSheet = (recipe = null) => {
+                if (recipe) {
+                    formTitle.textContent = '编辑菜谱';
+                    recipeNameInput.value = recipe.name;
+                    ingredientsInput.value = recipe.ingredients.join('，');
+                    seasoningsInput.value = recipe.seasonings.join('，');
+                    stepsInput.value = recipe.steps || '';
+                    currentImageData = recipe.image || '';
+                    editingId = recipe.id;
                 } else {
-                    document.getElementById('modalTitle').textContent = '添加新菜谱';
+                    formTitle.textContent = '添加新菜谱';
                     recipeNameInput.value = '';
                     ingredientsInput.value = '';
                     seasoningsInput.value = '';
                     stepsInput.value = '';
                     currentImageData = '';
-                    updateImagePreview('');
                     editingId = null;
                 }
-                formModalOverlay.classList.remove('hidden');
+                if (currentImageData) {
+                    previewImg.src = currentImageData;
+                    previewImg.classList.remove('hidden');
+                    placeholderContent.classList.add('hidden');
+                    removeImgBtn.classList.remove('hidden');
+                } else {
+                    previewImg.src = '';
+                    previewImg.classList.add('hidden');
+                    placeholderContent.classList.remove('hidden');
+                    removeImgBtn.classList.add('hidden');
+                }
+                formOverlay.classList.add('open');
                 recipeNameInput.focus();
-            }
-            function closeFormModal() { formModalOverlay.classList.add('hidden'); editingId = null; }
-            addRecipeBtn.addEventListener('click', () => openFormModal());
-            cancelFormBtn.addEventListener('click', closeFormModal);
-            formModalOverlay.addEventListener('click', (e) => { if (e.target === formModalOverlay) closeFormModal(); });
+            };
+            const closeFormSheet = () => {
+                formOverlay.classList.remove('open');
+                editingId = null;
+            };
+            formOverlay.addEventListener('click', e => { if (e.target === formOverlay) closeFormSheet(); });
 
+            addRecipeBtn.addEventListener('click', () => openFormSheet());
+
+            // 保存菜谱
             saveRecipeBtn.addEventListener('click', () => {
                 const name = recipeNameInput.value.trim();
-                const ingRaw = ingredientsInput.value.trim();
-                const seaRaw = seasoningsInput.value.trim();
+                const ingredients = parseItems(ingredientsInput.value);
+                const seasonings = parseItems(seasoningsInput.value);
                 const steps = stepsInput.value.trim();
-                if (!name) { alert('请输入菜名'); return; }
-                const ingredients = parseItems(ingRaw);
-                const seasonings = parseItems(seaRaw);
-                if (ingredients.length === 0 && seasonings.length === 0) {
-                    alert('请至少输入一种食材或调料'); return;
-                }
-                const recipeData = { name, ingredients, seasonings, steps, image: currentImageData };
+                if (!name) return alert('请输入菜名');
+                if (!ingredients.length && !seasonings.length) return alert('请至少输入一种食材或调料');
+
+                const data = { name, ingredients, seasonings, steps, image: currentImageData };
                 if (editingId) {
                     const idx = recipes.findIndex(r => r.id === editingId);
-                    if (idx !== -1) recipes[idx] = { ...recipes[idx], ...recipeData };
+                    if (idx !== -1) recipes[idx] = { ...recipes[idx], ...data };
                 } else {
-                    recipes.push({ id: Date.now().toString(), ...recipeData });
+                    recipes.push({ id: Date.now().toString(), ...data });
                 }
                 saveRecipes(recipes);
-                closeFormModal();
+                closeFormSheet();
                 renderRecipes();
             });
 
-            // 底部浮层控制
-            function openBottomSheet(recipeId) {
-                const recipe = recipes.find(r => r.id === recipeId);
+            // 详情浮层
+            const openDetailSheet = (id) => {
+                const recipe = recipes.find(r => r.id === id);
                 if (!recipe) return;
-                currentDetailId = recipeId;
+                currentDetailId = id;
                 if (recipe.image) {
                     detailImg.src = recipe.image;
-                    detailImg.style.display = 'block';
-                    detailImgPlaceholder.style.display = 'none';
+                    detailImg.classList.remove('hidden');
+                    detailImgPlaceholder.classList.add('hidden');
                 } else {
-                    detailImg.src = '';
-                    detailImg.style.display = 'none';
-                    detailImgPlaceholder.style.display = 'flex';
+                    detailImg.classList.add('hidden');
+                    detailImgPlaceholder.classList.remove('hidden');
                 }
                 detailName.textContent = recipe.name;
                 detailFoodTags.innerHTML = recipe.ingredients.map(i => `<span class="tag tag-food">${i}</span>`).join('');
                 detailSeasoningTags.innerHTML = recipe.seasonings.map(s => `<span class="tag tag-seasoning">${s}</span>`).join('');
                 detailSteps.textContent = recipe.steps || '暂无做法';
-                bottomSheetOverlay.classList.add('open');
-            }
-            function closeBottomSheet() {
-                bottomSheetOverlay.classList.remove('open');
+                detailOverlay.classList.add('open');
+            };
+            const closeDetailSheet = () => {
+                detailOverlay.classList.remove('open');
                 currentDetailId = null;
-            }
-            bottomSheetOverlay.addEventListener('click', (e) => {
-                if (e.target === bottomSheetOverlay) closeBottomSheet();
-            });
+            };
+            detailOverlay.addEventListener('click', e => { if (e.target === detailOverlay) closeDetailSheet(); });
             deleteFromDetailBtn.addEventListener('click', () => {
                 if (currentDetailId && confirm('确定要删除这道菜吗？')) {
                     recipes = recipes.filter(r => r.id !== currentDetailId);
                     saveRecipes(recipes);
-                    closeBottomSheet();
+                    closeDetailSheet();
                     renderRecipes();
                 }
             });
 
-            // 渲染瀑布流列表
-            function renderRecipes() {
-                const filtered = recipes.filter(r => recipeMatchesAllKeywords(r, currentKeywords));
-                resultCountSpan.textContent = `共 ${filtered.length} 道菜`;
+            // 渲染瀑布流
+            const renderRecipes = () => {
+                const filtered = recipes.filter(r => recipeMatches(r, currentKeywords));
+                resultCount.textContent = `共 ${filtered.length} 道菜`;
 
-                if (filtered.length === 0) {
-                    recipeGrid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="icon">🫗</div>
-                            <p>没有找到同时包含这些食材或调料的菜</p>
-                            <p style="font-size:0.8rem; margin-top:8px;">试试减少一两种，或者添加新菜谱吧</p>
-                        </div>`;
+                if (!filtered.length) {
+                    recipeGrid.innerHTML = `<div class="empty-state"><div class="icon">🫗</div><p>没有找到匹配的菜</p><p style="font-size:0.8rem;">试试减少关键词，或添加新菜谱</p></div>`;
                     return;
                 }
 
-                recipeGrid.innerHTML = filtered.map(recipe => {
-                    const imgHtml = recipe.image
-                        ? `<img class="card-img" src="${recipe.image}" alt="${recipe.name}">`
+                recipeGrid.innerHTML = filtered.map(r => {
+                    const imgHtml = r.image
+                        ? `<img class="card-img" src="${r.image}" alt="">`
                         : `<div class="card-placeholder">🍽️</div>`;
-                    const foodTags = recipe.ingredients.map(i => `<span class="tag tag-food">${i}</span>`).join('');
-                    const seasoningTags = recipe.seasonings.map(s => `<span class="tag tag-seasoning">${s}</span>`).join('');
-                    return `
-                        <div class="recipe-card" data-id="${recipe.id}">
-                            ${imgHtml}
-                            <div class="card-content">
-                                <div class="recipe-name">${recipe.name}</div>
-                                <div class="tags">${foodTags}${seasoningTags}</div>
-                            </div>
-                        </div>`;
+                    const tags = [
+                        ...r.ingredients.map(i => `<span class="tag tag-food">${i}</span>`),
+                        ...r.seasonings.map(s => `<span class="tag tag-seasoning">${s}</span>`)
+                    ].join('');
+                    return `<div class="recipe-card" data-id="${r.id}">${imgHtml}<div class="card-content"><div class="recipe-name">${r.name}</div><div class="tags">${tags}</div></div></div>`;
                 }).join('');
 
                 document.querySelectorAll('.recipe-card').forEach(card => {
-                    card.addEventListener('click', () => {
-                        openBottomSheet(card.dataset.id);
-                    });
+                    card.addEventListener('click', () => openDetailSheet(card.dataset.id));
                 });
-            }
+            };
 
-            searchInput.addEventListener('input', (e) => {
-                const raw = e.target.value.trim();
-                currentKeywords = raw ? raw.split(/\s+/).filter(Boolean) : [];
+            searchInput.addEventListener('input', e => {
+                currentKeywords = e.target.value.trim().split(/\s+/).filter(Boolean);
                 renderRecipes();
             });
 
